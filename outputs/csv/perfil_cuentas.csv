@@ -1,0 +1,30 @@
+company,cuenta_normalizada,industria,grupo_economico,tier_cuenta,indice_madurez,penetracion_catalogo_pct,win_rate,pitches_totales,pitches_ganados,pitches_perdidos,pitches_abiertos,revenue_ganado_eur,pipeline_abierto_eur,valor_perdido_eur,servicios_ejecutado,servicios_en_curso,servicios_en_pausa,servicios_perdido,servicios_blanco,familias_ejecutadas,familias_tocadas,pilares_tocados,primer_movimiento,ultimo_movimiento,dias_sin_movimiento
+TELEFONICA,Telefonica,Telco,Telefonica,Estrategica,60.1,13.3,1.0,8,6,0,2,50597.55,21896.649999999998,0.0,4,0,2,0,24,3,4,1,2026-01-01,2026-07-20,38
+PARQUE ARAUCO,Parque Arauco,Real Estate & Malls,Parque Arauco,Estrategica,55.0,3.3,1.0,5,2,0,3,41879.9,28010.75,0.0,1,2,1,0,26,1,3,1,2026-01-01,2026-07-20,38
+CLARO,Claro,Telco,America Movil,Estrategica,51.7,16.7,0.462,16,6,7,3,68082.02,68279.73999999999,97355.89,5,2,1,6,16,4,7,2,2025-06-30,2026-06-05,83
+SMU,SMU,Retail Supermercados,SMU,Emergente,49.7,3.3,1.0,1,1,0,0,7919.48,0.0,0.0,1,0,0,0,29,1,1,1,2026-03-24,2026-03-24,156
+PORSCHE GROUP,Porsche Group,Automotriz,Porsche,Desarrollo,49.6,3.3,1.0,1,1,0,0,7662.9,0.0,0.0,1,0,0,0,29,1,1,1,2026-01-01,2026-01-01,238
+GILDEMEISTER,Gildemeister,Automotriz,Gildemeister,Estrategica,48.4,13.3,0.7,13,7,3,3,8384.95,41385.469999999994,38061.149999999994,4,1,1,2,22,3,6,2,2025-12-27,2026-08-03,24
+INDUMOTORA,Indumotora,Automotriz,Indumotora,Estrategica,45.1,3.3,0.75,13,6,2,5,8852.529999999999,27389.08,5444.889999999999,1,4,0,2,23,1,3,1,2026-01-01,2026-07-09,49
+COPEC FLUX,Copec Flux,Energia & Combustibles,Copec,Estrategica,41.7,6.7,0.5,9,3,3,3,9189.619999999999,14318.36,30455.31,2,1,1,2,24,2,4,1,2026-01-01,2026-08-25,2
+ESMAX,Esmax,Energia & Combustibles,Esmax,Desarrollo,35.1,3.3,0.2,6,1,4,1,12372.88,3544.0,20857.93,1,1,0,3,25,1,4,2,2026-01-01,2026-07-20,38
+TUA,TUA,Por clasificar,Por clasificar,Emergente,33.6,3.3,0.333,5,1,2,2,3254.23,9150.34,11158.56,1,2,0,0,27,1,3,1,2026-05-29,2026-08-14,13
+ENEX,Enex,Energia & Combustibles,Quinenco,Desarrollo,32.6,3.3,0.5,3,1,1,1,821.25,3235.17,4161.45,1,0,0,1,28,1,1,1,2025-08-30,2026-08-27,0
+DECATHLON,Decathlon,Retail Deportes,Decathlon,Emergente,0.0,0.0,,1,0,0,1,0.0,3235.17,0.0,0,1,0,0,29,0,1,1,2026-08-27,2026-08-27,0
+CRUZ VERDE,Cruz Verde,Retail Farmacia,SIF,Emergente,0.0,0.0,,1,0,0,1,0.0,54108.36,0.0,0,1,0,0,29,0,1,1,2026-08-05,2026-08-05,22
+LACTALIS,Lactalis,CPG Alimentos,Lactalis,Emergente,0.0,0.0,,1,0,0,1,0.0,4944.58,0.0,0,1,0,0,29,0,1,1,2026-06-25,2026-06-25,63
+INCHAPE AMERICAS,Inchcape Americas,Automotriz,Inchcape,Desarrollo,0.0,0.0,0.0,4,0,1,3,0.0,13784.01,20251.46,0,2,0,1,27,0,2,2,2026-02-24,2026-08-03,24
+GAES,GAES,Salud,Amplifon,Emergente,0.0,0.0,0.0,1,0,1,0,0.0,0.0,41896.33,0,0,0,1,29,0,1,1,2025-12-30,2025-12-30,240
+GASCO,Gasco,Energia & Combustibles,Gasco,Emergente,0.0,0.0,,1,0,0,1,0.0,9661.0,0.0,0,1,0,0,29,0,1,1,2026-05-20,2026-05-20,99
+ESCUELA DE COMERCIO Y SERVICIO,Escuela de Comercio y Servicio,Educacion,Independiente,Emergente,0.0,0.0,,1,0,0,1,0.0,12821.08,0.0,0,1,0,0,29,0,1,1,2026-07-17,2026-07-17,41
+PJ CHILE SPA,PJ Chile SpA,Food & QSR,PJ Chile,Emergente,0.0,0.0,0.0,1,0,1,0,0.0,0.0,2489.09,0,0,0,1,29,0,1,1,2026-05-29,2026-05-29,90
+PC FACTORY,PC Factory,Retail Electro,PC Factory,Emergente,0.0,0.0,0.0,2,0,1,1,0.0,3431.1,4991.52,0,1,0,1,28,0,2,1,2026-03-30,2026-04-23,126
+LATAM AERLINES,LATAM Airlines,Travel & Aerolineas,LATAM,Desarrollo,0.0,0.0,,1,0,0,1,0.0,31052.23,0.0,0,1,0,0,29,0,1,1,2026-07-30,2026-07-30,28
+SKY AIRLINE,Sky Airline,Travel & Aerolineas,Sky,Emergente,0.0,0.0,0.0,1,0,1,0,0.0,0.0,28181.05,0,0,0,1,29,0,1,1,2026-02-24,2026-02-24,184
+RECKITT,Reckitt,CPG Cuidado Personal,Reckitt,Emergente,0.0,0.0,,1,0,0,1,0.0,5084.74,0.0,0,1,0,0,29,0,1,1,2026-08-06,2026-08-06,21
+POLLA,Polla Chilena,Juegos & Entretenimiento,Polla,Emergente,0.0,0.0,,2,0,0,2,0.0,16996.54,0.0,0,1,1,0,28,0,2,1,2026-06-15,2026-06-15,73
+TENPO,Tenpo,Fintech & Banca,Credicorp,Emergente,0.0,0.0,0.0,2,0,2,0,0.0,0.0,55691.5,0,0,0,2,28,0,2,2,2026-04-17,2026-07-20,38
+TRICOT,Tricot,Retail Vestuario,Tricot,Emergente,0.0,0.0,0.0,2,0,2,0,0.0,0.0,6222.73,0,0,0,2,28,0,2,1,2025-08-30,2026-07-20,38
+VERISURE,Verisure,Servicios Hogar & Seguridad,Verisure,Desarrollo,0.0,0.0,0.0,6,0,6,0,0.0,0.0,72482.45999999999,0,0,0,5,25,0,2,2,2025-06-30,2026-06-03,85
+WATTS,Watts,CPG Alimentos,Watts,Desarrollo,0.0,0.0,0.0,3,0,3,0,0.0,0.0,37336.39,0,0,0,3,27,0,2,2,2025-06-30,2025-12-27,243
+WOM,WOM,Telco,WOM,Desarrollo,0.0,0.0,0.0,3,0,3,0,0.0,0.0,85833.93999999999,0,0,0,2,28,0,2,1,2026-06-09,2026-06-23,65

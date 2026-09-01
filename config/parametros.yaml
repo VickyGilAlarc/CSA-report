@@ -1,0 +1,61 @@
+# =====================================================================
+# Parametros del Mapa de Proyectos y Oportunidades CSA Chile
+# Todos los pesos y umbrales del modelo viven aqui: cambiarlos aqui
+# recalcula el mapa completo sin tocar el codigo.
+# =====================================================================
+
+fuente:
+  archivo: data/raw/Reporte_Pitches_CL.xlsx
+  hoja: Sheet0
+  fila_encabezado: 7          # 1-indexado, tal como se ve en Excel
+  moneda_reporte: EUR         # PROJECT PRICE (Lcy) ya viene convertido
+
+# Mapeo de la columna "Fase" del CRM a los estados del mapa.
+# categoria: GANADO | ABIERTO | PERDIDO
+fases:
+  "6.Won":          {estado: Ganado,      categoria: GANADO,  orden: 1, abierto: false}
+  "5.Pitching":     {estado: En pitch,    categoria: ABIERTO, orden: 2, abierto: true}
+  "8.On Hold":      {estado: En pausa,    categoria: ABIERTO, orden: 3, abierto: true}
+  "2.Prospecting":  {estado: Prospectado, categoria: ABIERTO, orden: 4, abierto: true}
+  "1. Lead":        {estado: Lead,        categoria: ABIERTO, orden: 5, abierto: true}
+  "10.Lost":        {estado: Perdido,     categoria: PERDIDO, orden: 6, abierto: false}
+
+# Estados de cobertura de cada celda cuenta x servicio (jerarquia descendente).
+# BLANCO es el espacio blanco puro: nunca se le ofrecio a esa cuenta.
+cobertura:
+  jerarquia: [EJECUTADO, EN_CURSO, EN_PAUSA, PERDIDO, BLANCO]
+
+# Modelo de scoring de oportunidad (los pesos deben sumar 1.0)
+scoring:
+  pesos:
+    demanda: 0.24        # que tan vendible es el servicio en el portafolio CL
+    afinidad: 0.26       # market basket: cuentas parecidas ya lo compraron
+    valor: 0.18          # ticket potencial del servicio
+    momentum: 0.12       # actividad reciente del servicio en el mercado
+    adyacencia: 0.20     # cercania al portafolio que la cuenta ya tiene
+  # Multiplicador segun el estado actual de la celda.
+  factor_estado:
+    BLANCO: 1.00
+    PERDIDO: 0.70
+    EN_PAUSA: 0.55
+  # Penalizacion por recencia de la derrota: un Lost fresco se re-pitchea peor.
+  reactivacion:
+    dias_para_repitch: 270      # antes de esto, un Perdido no se considera reactivable
+    penalizacion_reciente: 0.35 # multiplicador si perdio hace menos de ese plazo
+  # Corte de prioridad sobre el score final 0-100.
+  # Calibrado sobre la base actual: A ~ percentil 97, B ~ percentil 67.
+  # Son umbrales absolutos a proposito, para poder comparar trimestre a trimestre.
+  umbrales_prioridad:
+    A: 48
+    B: 36
+  # Cuantas oportunidades se listan por cuenta en la vista ejecutiva
+  top_por_cuenta: 5
+
+afinidad:
+  soporte_minimo: 2        # nro minimo de cuentas que comparten el par de servicios
+  suavizado: 1.0           # suavizado de Laplace para la confianza
+
+ventanas:
+  # Fecha de corte del analisis. null = maxima fecha presente en los datos.
+  fecha_corte: null
+  meses_momentum: 9        # ventana para considerar un servicio "activo"
