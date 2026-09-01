@@ -46,12 +46,50 @@ def _estado_celda(grupo: pd.DataFrame) -> str:
     return "PERDIDO"
 
 
-def celdas(cfg: Config, base: pd.DataFrame) -> pd.DataFrame:
+def valor_referencia(base: pd.DataFrame, universo: pd.DataFrame) -> pd.DataFrame:
+    """Precio de referencia de cada servicio y de donde sale.
+
+    Manda el historico local cuando existe (es lo que el mercado chileno pago de
+    verdad); si no, el SRP de lista del catalogo; y si el servicio es "a cotizar"
+    sin historia, la mediana del portafolio, marcada como tal.
+    """
+    observado = (
+        base.groupby("service_name")["precio_eur"]
+        .agg(["median", "count"])
+        .rename(columns={"median": "ticket_mediano_eur", "count": "n_observaciones"})
+        .reset_index()
+    )
+    df = universo[["service_name", "srp_eur"]].merge(observado, on="service_name", how="left")
+    mediana_global = df["ticket_mediano_eur"].median(skipna=True)
+
+    df["valor_referencia_eur"] = df["ticket_mediano_eur"]
+    df["fuente_valor"] = "Historico CL"
+    sin_hist = df["valor_referencia_eur"].isna()
+    df.loc[sin_hist, "valor_referencia_eur"] = df.loc[sin_hist, "srp_eur"]
+    df.loc[sin_hist, "fuente_valor"] = "SRP catalogo"
+    sin_nada = df["valor_referencia_eur"].isna()
+    df.loc[sin_nada, "valor_referencia_eur"] = mediana_global
+    df.loc[sin_nada, "fuente_valor"] = "Mediana portafolio"
+    df["n_observaciones"] = df["n_observaciones"].fillna(0).astype(int)
+
+    # Un precio mensual de lista y uno anual no son comparables: para priorizar y
+    # para calcular el delta de un upgrade se lleva todo a valor anual de contrato.
+    # Solo se anualiza el SRP, que es tarifa mensual; el historico chileno ya es
+    # el valor cerrado del negocio y multiplicarlo por 12 lo inflaria.
+    modalidad = universo.set_index("service_name")["modalidad"]
+    df["modalidad"] = df["service_name"].map(modalidad)
+    anualizar = df["modalidad"].eq("Mensual") & df["fuente_valor"].eq("SRP catalogo")
+    df["valor_anual_eur"] = np.where(
+        anualizar, df["valor_referencia_eur"] * 12, df["valor_referencia_eur"]
+    )
+    return df[["service_name", "valor_referencia_eur", "valor_anual_eur", "fuente_valor",
+               "ticket_mediano_eur", "n_observaciones"]]
+
+
+def celdas(cfg: Config, base: pd.DataFrame, universo: pd.DataFrame) -> pd.DataFrame:
     """Una fila por cruce cuenta x servicio del catalogo (incluye los blancos)."""
     cuentas = cfg.cuentas[cfg.cuentas["company"].isin(base["company"])].copy()
-    servicios = cfg.taxonomia[cfg.taxonomia["en_catalogo"].astype(str).str.upper() == "SI"].copy()
-
-    grilla = cuentas.assign(_k=1).merge(servicios.assign(_k=1), on="_k").drop(columns="_k")
+    grilla = cuentas.assign(_k=1).merge(universo.assign(_k=1), on="_k").drop(columns="_k")
 
     resumen = []
     for (company, service_name), grupo in base.groupby(["company", "service_name"], sort=False):
@@ -199,10 +237,16 @@ def perfil_cuentas(cfg: Config, base: pd.DataFrame, celdas_df: pd.DataFrame,
 
 def perfil_servicios(base: pd.DataFrame, celdas_df: pd.DataFrame,
                      corte: pd.Timestamp, meses_momentum: int) -> pd.DataFrame:
-    """KPIs por servicio: demanda, win rate, ticket y momentum de mercado."""
+    """KPIs por servicio: demanda, win rate, ticket y momentum de mercado.
+
+    Cubre TODO el catalogo, no solo lo pitcheado: un servicio con cero historia
+    tiene que aparecer con sus 29 cuentas en blanco, que es justamente donde hay
+    mas cancha.
+    """
     n_cuentas = celdas_df["company"].nunique()
     limite = corte - pd.DateOffset(months=meses_momentum)
 
+    universo_serv = celdas_df[["service_name"]].drop_duplicates()
     g = base.groupby("service_name")
     perf = pd.DataFrame(
         {
@@ -217,6 +261,9 @@ def perfil_servicios(base: pd.DataFrame, celdas_df: pd.DataFrame,
             "ultimo_movimiento": g["fecha_referencia"].max(),
         }
     ).reset_index()
+    perf = universo_serv.merge(perf, on="service_name", how="left")
+    for col in ("pitches", "ganados", "perdidos", "abiertos", "revenue_eur", "pitches_recientes"):
+        perf[col] = perf[col].fillna(0)
 
     cuentas_ganadoras = (
         base[base["categoria"] == "GANADO"].groupby("service_name")["company"].nunique()
@@ -229,6 +276,7 @@ def perfil_servicios(base: pd.DataFrame, celdas_df: pd.DataFrame,
         cuentas_ofrecido, on="service_name", how="left"
     )
     perf["cuentas_con_servicio"] = perf["cuentas_con_servicio"].fillna(0).astype(int)
+    perf["cuentas_ofrecido"] = perf["cuentas_ofrecido"].fillna(0).astype(int)
 
     perf["win_rate"] = np.where(
         (perf["ganados"] + perf["perdidos"]) > 0,
@@ -237,18 +285,23 @@ def perfil_servicios(base: pd.DataFrame, celdas_df: pd.DataFrame,
     ).round(3)
     perf["penetracion_pct"] = (perf["cuentas_con_servicio"] / n_cuentas * 100).round(1)
     perf["cuentas_blanco"] = n_cuentas - perf["cuentas_ofrecido"]
-    perf["momentum_pct"] = (perf["pitches_recientes"] / perf["pitches"] * 100).round(1)
+    perf["momentum_pct"] = np.where(
+        perf["pitches"] > 0, perf["pitches_recientes"] / perf["pitches"] * 100, 0.0
+    ).round(1)
     perf["dias_sin_movimiento"] = (corte - perf["ultimo_movimiento"]).dt.days
 
     tax = celdas_df[
         ["service_name", "servicio_normalizado", "label_corto", "familia", "subfamilia", "pilar",
-         "modelo_comercial", "ticket_tipo"]
-    ].drop_duplicates()
+         "capability", "origen", "modalidad", "ticket_tipo", "grupo_sustitucion", "regla_grupo",
+         "nivel", "srp_eur", "valor_referencia_eur", "valor_anual_eur", "fuente_valor", "activo"]
+    ].drop_duplicates("service_name")
     perf = perf.merge(tax, on="service_name", how="left")
 
     columnas = [
         "servicio_normalizado", "label_corto", "service_name", "familia", "subfamilia", "pilar",
-        "modelo_comercial", "ticket_tipo", "penetracion_pct", "win_rate", "momentum_pct",
+        "capability", "origen", "modalidad", "ticket_tipo", "grupo_sustitucion", "regla_grupo", "nivel",
+        "activo", "penetracion_pct", "win_rate", "momentum_pct",
+        "valor_referencia_eur", "valor_anual_eur", "fuente_valor", "srp_eur",
         "ticket_mediano_eur", "ticket_promedio_eur", "revenue_eur",
         "pitches", "ganados", "perdidos", "abiertos",
         "cuentas_con_servicio", "cuentas_ofrecido", "cuentas_blanco",

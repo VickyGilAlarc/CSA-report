@@ -62,8 +62,12 @@ def construir_datos(mapa: Mapa) -> dict:
             "t": r.tipo_oportunidad,
             "sc": float(r.score),
             "p": r.prioridad,
+            "rol": r.rol_en_grupo,
+            "neta": bool(r.oportunidad_neta),
+            "cp": _limpio(r.cubierto_por),
+            "mg": _limpio(r.motivo_grupo),
             "v": _limpio(r.valor_potencial_eur),
-            "r": int(r.ranking_en_cuenta),
+            "r": _limpio(r.ranking_en_cuenta),
             "k": [float(r.c_demanda), float(r.c_afinidad), float(r.c_valor),
                   float(r.c_momentum), float(r.c_adyacencia)],
             "ad": _limpio(r.adopcion_industria_pct),
@@ -101,9 +105,12 @@ def construir_datos(mapa: Mapa) -> dict:
         "servicios": [
             {
                 "n": r.servicio_normalizado, "corto": r.label_corto, "fam": r.familia, "sub": r.subfamilia,
-                "pil": r.pilar, "mod": r.modelo_comercial,
+                "pil": r.pilar, "mod": r.modalidad, "sub": r.subfamilia,
+                "gr": r.grupo_sustitucion, "rg": r.regla_grupo, "niv": int(r.nivel),
+                "act": bool(r.activo),
                 "pen": _limpio(r.penetracion_pct), "wr": _limpio(r.win_rate),
-                "mom": _limpio(r.momentum_pct), "tic": _limpio(r.ticket_mediano_eur),
+                "mom": _limpio(r.momentum_pct), "tic": _limpio(r.valor_anual_eur),
+                "fv": r.fuente_valor,
                 "ce": int(r.cuentas_con_servicio), "cb": int(r.cuentas_blanco),
                 "pit": int(r.pitches),
             }
@@ -111,6 +118,13 @@ def construir_datos(mapa: Mapa) -> dict:
         ],
         "celdas": celdas,
         "ops": ops,
+        "grupos": [
+            {"g": r.grupo_sustitucion, "regla": r.regla_grupo, "desc": r.descripcion_regla,
+             "celdas": int(r.celdas), "netas": int(r.netas), "alt": int(r.alternativas),
+             "cub": int(r.cubiertas), "up": int(r.upgrades),
+             "evitadas": int(r.celdas_evitadas), "red": float(r.reduccion_pct)}
+            for r in mapa.grupos.itertuples()
+        ],
         "reglas": [
             {"a": r.antecedente, "b": r.consecuente, "canasta": r.canasta,
              "n": int(r.cuentas_con_ambos), "conf": float(r.confianza),
@@ -339,6 +353,19 @@ td.cellwrap.fam-start{border-left:2px solid var(--line)}
 .pill{font-family:"IBM Plex Mono",monospace; font-size:10px; font-weight:600; letter-spacing:.06em;
   padding:2px 7px; border-radius:4px; color:#fff; flex:none}
 .pill.A{background:var(--prio-a)} .pill.B{background:var(--prio-b); color:#332608} .pill.C{background:var(--prio-c)}
+.pill.X{background:transparent; color:var(--ink-3); border:1px dashed var(--line)}
+.rol{font-size:11px; font-weight:500; padding:1px 7px; border-radius:4px; display:inline-block;
+  border:1px solid transparent; white-space:nowrap}
+.r-UNICO,.r-ACUMULABLE{color:var(--ink-2); border-color:var(--line)}
+.r-REPRESENTANTE,.r-EXCLUSIVO{color:var(--accent-ink); background:var(--accent-soft); border-color:var(--accent-soft)}
+.r-UPGRADE,.r-ESCALABLE{color:#0e6b4c; background:#dcf1e8; border-color:#c3e6d7}
+:root:not([data-theme="light"]) .r-UPGRADE,:root:not([data-theme="light"]) .r-ESCALABLE{color:#7fd9b4; background:#12362a; border-color:#1c4a39}
+:root[data-theme="dark"] .r-UPGRADE,:root[data-theme="dark"] .r-ESCALABLE{color:#7fd9b4; background:#12362a; border-color:#1c4a39}
+.r-ALTERNATIVA{color:#7a5c10; background:#fbf0d8; border-color:#f0e2bd}
+:root:not([data-theme="light"]) .r-ALTERNATIVA{color:#e8c46a; background:#332912; border-color:#4a3c1a}
+:root[data-theme="dark"] .r-ALTERNATIVA{color:#e8c46a; background:#332912; border-color:#4a3c1a}
+.r-CUBIERTO{color:var(--ink-3); border-color:var(--line); text-decoration:line-through}
+table.data tr.off td{opacity:.62}
 .scorebar{height:5px; border-radius:3px; background:var(--sunken); overflow:hidden; margin-top:7px}
 .scorebar i{display:block; height:100%; background:var(--accent); border-radius:3px}
 
@@ -355,10 +382,35 @@ table.data td.n{text-align:right; font-variant-numeric:tabular-nums; white-space
 .bar{position:relative; display:block; width:100%; min-width:80px; height:16px;
   background:var(--sunken); border-radius:3px; overflow:hidden}
 .bar i{position:absolute; left:0; top:0; bottom:0; border-radius:3px; background:var(--accent)}
-.bar b{position:absolute; right:5px; top:0; font-size:10.5px; line-height:16px; font-weight:600;
-  color:var(--ink-2); font-variant-numeric:tabular-nums}
+.bar b{position:absolute; right:3px; top:2px; bottom:2px; padding:0 4px; font-size:10.5px;
+  line-height:12px; font-weight:600; color:var(--ink-2); font-variant-numeric:tabular-nums;
+  background:var(--surface); border-radius:2px}
 .muted{color:var(--ink-2)}
 .count{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--ink-3)}
+
+/* ---------- sustitucion ---------- */
+(function pintarSustitucion(){
+  const ev = M.n_oportunidades_brutas - M.n_oportunidades_netas;
+  $("#sust-stats").innerHTML = [
+    ["Oportunidades netas", M.n_oportunidades_netas, "jugadas distintas que sí vale abrir", true],
+    ["Duplicados evitados", ev, `${(ev/M.n_oportunidades_brutas*100).toFixed(0)}% del universo bruto`],
+    ["Alternativas", M.n_alternativas, "misma necesidad ya cubierta por otra variante"],
+    ["Ya cubierto", M.n_cubiertas, "resuelto por un servicio hermano que la cuenta implementa"],
+    ["Upgrades", M.n_upgrades, "siguiente escalón sobre algo ya implementado"],
+    ["Grupos activos", D.grupos.length, "familias de servicios que compiten entre sí"],
+  ].map(([k,v,s,hero])=>`<div class="stat${hero?" hero":""}"><span class="k">${k}</span>`
+    + `<span class="v num">${typeof v==="number"?v.toLocaleString("es-CL"):v}</span><span class="s">${s}</span></div>`).join("");
+
+  const head = `<thead><tr><th>Grupo</th><th>Regla</th><th class="n">Celdas</th><th class="n">Netas</th>
+    <th class="n">Evitadas</th><th>Reducción</th><th>Por qué son sustitutos</th></tr></thead>`;
+  $("#gr-tbl").innerHTML = head + "<tbody>" + D.grupos.map(g=>`<tr>
+      <td><b>${esc(g.g)}</b></td>
+      <td><span class="rol r-${g.regla}">${esc(g.regla.toLowerCase())}</span></td>
+      <td class="n">${g.celdas}</td><td class="n">${g.netas}</td><td class="n">${g.evitadas}</td>
+      <td style="min-width:110px"><span class="bar"><i style="width:${g.red}%"></i><b>${g.red.toFixed(0)}%</b></span></td>
+      <td class="muted" style="min-width:340px">${esc(g.desc)}</td>
+    </tr>`).join("") + "</tbody>";
+})();
 
 /* ---------- catalogo ---------- */
 .cat{display:flex; flex-direction:column; gap:1px; background:var(--line)}
@@ -390,8 +442,9 @@ footer{border-top:1px solid var(--line); padding-top:18px; color:var(--ink-3); f
     <div>
       <div class="eyebrow" id="eyebrow"></div>
       <h1>Mapa de cuentas CSA Chile</h1>
-      <p class="lede">Qué le vendimos a cada cliente, qué está vivo y —sobre todo— qué del catálogo
-      nunca le ofrecimos. Cada celda vacía del mapa es un espacio blanco con nombre y apellido.</p>
+      <p class="lede">Qué le vendimos a cada cliente, qué está vivo y qué del catálogo nunca le
+      ofrecimos. Con un filtro encima: no todo hueco es oportunidad. Cuando tres variantes resuelven
+      lo mismo, el mapa propone una sola.</p>
     </div>
     <div class="stamp" id="stamp"></div>
   </div>
@@ -402,10 +455,15 @@ footer{border-top:1px solid var(--line); padding-top:18px; color:var(--ink-3); f
 
   <section id="mapa">
     <div class="sec-head"><h2>El mapa</h2><span class="eyebrow">Cuenta × servicio</span></div>
-    <p class="sec-note">Cada fila es una cuenta, cada columna un servicio del catálogo, agrupado por familia.
-      El estado de la celda resuelve por jerarquía cuando hay varios pitches: ejecutado gana sobre pipeline,
-      pipeline sobre pausa, pausa sobre perdido. Clic en una celda o en una cuenta abre su ficha.</p>
+    <p class="sec-note">Cada fila es una cuenta, cada columna un servicio del catálogo oficial, agrupado
+      por scope. El estado resuelve por jerarquía cuando hay varios pitches: ejecutado gana sobre pipeline,
+      pipeline sobre pausa, pausa sobre perdido. El catálogo completo son <b id="n-cat"></b> servicios;
+      arranca filtrado a los que ya tienen historial en Chile. Clic en una celda o en una cuenta abre su ficha.</p>
     <div class="controls">
+      <div class="seg" role="group" aria-label="Alcance del catálogo">
+        <button data-scope="hist" aria-pressed="true">Con historial</button>
+        <button data-scope="all" aria-pressed="false">Catálogo completo</button>
+      </div>
       <select id="f-ind" aria-label="Filtrar por industria"></select>
       <select id="f-fam" aria-label="Filtrar por familia de servicio"></select>
       <div class="seg" role="group" aria-label="Ordenar cuentas">
@@ -426,16 +484,32 @@ footer{border-top:1px solid var(--line); padding-top:18px; color:var(--ink-3); f
     <div class="card acct" id="acct"></div>
   </section>
 
+  <section id="sustitucion">
+    <div class="sec-head"><h2>Una sola vez cada cosa</h2><span class="eyebrow">Grupos de sustitución</span></div>
+    <p class="sec-note">No todo espacio blanco es una oportunidad. Cuando varios servicios resuelven la
+      misma necesidad —las tres variantes de ODO, las cuatro rutas de CAPI, los enfoques de MMM— proponerlos
+      todos es inflar el pipeline con trabajo duplicado. Cada servicio pertenece a un grupo con una regla, y
+      dentro de cada cuenta el modelo se queda con una sola jugada por grupo.</p>
+    <div class="stats" id="sust-stats"></div>
+    <div class="card tbl-scroll"><table class="data" id="gr-tbl"></table></div>
+  </section>
+
   <section id="blancos">
     <div class="sec-head"><h2>Espacios blancos priorizados</h2><span class="eyebrow">Score 0–100</span></div>
-    <p class="sec-note">Todo cruce cuenta × servicio que no está ejecutado ni en conversación, ordenado por score.
-      «Espacio blanco» = nunca ofrecido. «Reactivación» = se ofreció y se perdió hace más de 9 meses.
-      «Rescate» = quedó en pausa.</p>
+    <p class="sec-note">Cruces que no están ejecutados ni en conversación, ordenados por score.
+      «Espacio blanco» = nunca ofrecido · «Reactivación» = se perdió hace más de 9 meses ·
+      «Rescate» = quedó en pausa · «Upgrade» = siguiente escalón sobre algo ya implementado.
+      Por defecto se muestran solo las <b>oportunidades netas</b>; las alternativas equivalentes y
+      lo ya cubierto por un sustituto quedan fuera del ranking pero se pueden ver.</p>
     <div class="controls">
       <input type="search" id="q" placeholder="Buscar cuenta o servicio…" aria-label="Buscar">
       <select id="f-prio" aria-label="Filtrar por prioridad"></select>
       <select id="f-tipo" aria-label="Filtrar por tipo de oportunidad"></select>
       <select id="f-fam2" aria-label="Filtrar por familia"></select>
+      <div class="seg" role="group" aria-label="Alcance de la lista">
+        <button data-net="1" aria-pressed="true">Netas</button>
+        <button data-net="0" aria-pressed="false">Incluir descartadas</button>
+      </div>
       <span class="count" id="op-count"></span>
     </div>
     <div class="card tbl-scroll"><table class="data" id="op-tbl"></table></div>
@@ -472,6 +546,11 @@ footer{border-top:1px solid var(--line); padding-top:18px; color:var(--ink-3); f
 <script>
 const D = /*__DATOS__*/null;
 const EST = ["Nunca ofrecido","Ejecutado","En pipeline","En pausa","Ofrecido y perdido"];
+const ROL = {
+  UNICO:"Oportunidad única", REPRESENTANTE:"Variante elegida del grupo",
+  UPGRADE:"Upgrade del escalón actual", ALTERNATIVA:"Alternativa equivalente — no se cuenta aparte",
+  CUBIERTO:"Ya cubierto por un sustituto",
+};
 const $ = (s)=>document.querySelector(s);
 const $$ = (s)=>document.querySelector(s) || {set innerHTML(v){}, set textContent(v){}, addEventListener(){}};
 const eur = (v)=> v==null ? "—" : "€" + Math.round(v).toLocaleString("es-CL");
@@ -497,10 +576,11 @@ $("#foot").innerHTML = `Generado desde <code>data/raw/Reporte_Pitches_CL.xlsx</c
   + `Montos en EUR. Los pesos del score y la taxonomía de servicios se editan en <code>config/</code>.`;
 
 $("#stats").innerHTML = [
-  ["Espacios blancos", M.n_blanco, `de ${M.n_celdas} cruces posibles`, true],
-  ["Cobertura", M.cobertura_pct+"%", `${M.n_ejecutado} celdas ejecutadas`],
+  ["Oportunidades netas", M.n_oportunidades_netas,
+   `de ${M.n_blanco.toLocaleString("es-CL")} espacios blancos brutos`, true],
+  ["Cobertura", M.cobertura_pct+"%", `${M.n_ejecutado} de ${M.n_celdas.toLocaleString("es-CL")} celdas ejecutadas`],
+  ["Catálogo", M.n_servicios_catalogo, `servicios activos × ${M.n_cuentas} cuentas`],
   ["En pipeline", M.n_en_curso, `+ ${M.n_en_pausa} en pausa por destrabar`],
-  ["Perdidas", M.n_perdido, `${eur(M.valor_perdido_eur)} no convertidos`],
   ["Win rate", (M.win_rate_global*100).toFixed(0)+"%", `${eur(M.revenue_ganado_eur)} ganados`],
   ["Prioridad A", M.oportunidades_A, `+${M.oportunidades_B} en B · ${eur(M.valor_espacios_blancos_eur)} potenciales`],
 ].map(([k,v,s,hero])=>`<div class="stat${hero?" hero":""}"><span class="k">${k}</span>`
@@ -525,7 +605,12 @@ $("#f-prio").innerHTML = opt("","Toda prioridad") + ["A","B","C"].map(p=>opt(p,"
 $("#f-tipo").innerHTML = opt("","Todo tipo") + [...new Set(D.ops.map(o=>o.t))].map(t=>opt(t,t)).join("");
 $("#f-cta").innerHTML = D.cuentas.map((c,i)=>opt(i,c.n+" · "+c.ind)).join("");
 
-let orden = "ind", sel = 0;
+let orden = "ind", sel = 0, scope = "hist", soloNetas = true;
+
+// Servicios con historial de pitch en Chile: el arranque por defecto del mapa.
+const conHistorial = new Set();
+D.celdas.forEach(c => { if (c[3] > 0) conHistorial.add(c[1]); });
+$("#n-cat").textContent = D.servicios.length;
 
 /* ---------- matriz ---------- */
 function ordenCuentas(){
@@ -536,7 +621,9 @@ function ordenCuentas(){
 }
 function pintarMatriz(){
   const fInd = $("#f-ind").value, fFam = $("#f-fam").value;
-  const cols = D.servicios.map((s,i)=>i).filter(i=>!fFam || D.servicios[i].fam===fFam);
+  const cols = D.servicios.map((s,i)=>i)
+    .filter(i => scope==="all" || conHistorial.has(i))
+    .filter(i => !fFam || D.servicios[i].fam===fFam);
   const filas = ordenCuentas().filter(i=>!fInd || D.cuentas[i].ind===fInd);
 
   // encabezado de familias (colspan) + encabezado de servicios
@@ -603,8 +690,13 @@ document.addEventListener("mousemove", ev=>{
   let extra = "";
   if(e===1) extra = `<div class="m">${cell[3]} pitch(es) · ${eur(cell[4])} ganados</div>`;
   else if(cell && cell[3]>0) extra = `<div class="m">${cell[3]} pitch(es) · último movimiento ${cell[5]??"—"}</div>`;
-  if(op) extra += `<div class="m">Score ${op.sc.toFixed(1)} · prioridad ${op.p} · ticket ref. ${eur(op.v)}</div>`
-    + `<div class="m">${esc(op.m)}</div>`;
+  if(op){
+    extra += op.neta
+      ? `<div class="m">Score ${op.sc.toFixed(1)} · prioridad ${op.p} · valor ref. ${eur(op.v)}</div>`
+        + `<div class="m">${esc(op.m)}</div>`
+      : `<div class="m" style="color:var(--curso)">${esc(ROL[op.rol])}</div>`;
+    if(op.mg) extra += `<div class="m">${esc(op.mg)}</div>`;
+  }
   mostrarTip(ev, `<div class="t">${esc(c.n)} — ${esc(s.n)}</div>`
     + `<div class="m">${esc(s.fam)}</div>`
     + `<span class="st" style="color:var(--ink-3)">${EST[e]}</span>${extra}`);
@@ -617,7 +709,8 @@ function pintarFicha(){
     .map(x=>D.servicios[x[1]]).sort((a,b)=>a.fam.localeCompare(b.fam));
   const enCurso = D.celdas.filter(x=>x[0]===sel && x[2]===2).map(x=>D.servicios[x[1]]);
   const tot = c.ej + c.cu + c.pa + c.pe + c.bl;
-  const ops = (opsByAcct[sel]||[]).slice(0,6);
+  const ops = (opsByAcct[sel]||[]).filter(o=>o.neta).slice(0,6);
+  const cubiertas = (opsByAcct[sel]||[]).filter(o=>o.rol==="CUBIERTO");
 
   const famCob = {};
   D.celdas.filter(x=>x[0]===sel).forEach(x=>{
@@ -639,6 +732,7 @@ function pintarFicha(){
         <dt>Valor perdido</dt><dd>${eur(c.per)}</dd>
         <dt>Sin movimiento</dt><dd>${c.dias==null?"—":c.dias+" días"}</dd>
         <dt>Espacios blancos</dt><dd>${c.bl} servicios nunca ofrecidos</dd>
+        <dt>Oportunidades netas</dt><dd>${(opsByAcct[sel]||[]).filter(o=>o.neta).length} tras descontar sustitutos</dd>
       </dl>
       <div class="eyebrow" style="margin-top:16px">Portafolio ejecutado</div>
       <div class="chiprow">${ejecutados.length
@@ -657,7 +751,7 @@ function pintarFicha(){
       </div>
     </div>
     <div>
-      <div class="eyebrow">Jugadas priorizadas</div>
+      <div class="eyebrow">Jugadas priorizadas <span style="text-transform:none;letter-spacing:0">— netas, una por grupo</span></div>
       <ul class="oplist">${ops.map(o=>{
         const s = D.servicios[o.s];
         return `<li>
@@ -667,8 +761,13 @@ function pintarFicha(){
             <span class="sc">${o.sc.toFixed(1)}</span></div>
           <div class="scorebar"><i style="width:${Math.min(100,o.sc)}%"></i></div>
           <div class="op-m">${esc(o.m)}</div>
+          ${o.mg ? `<div class="op-m" style="color:var(--ink-3)">${esc(o.mg)}</div>` : ""}
           <div class="op-a">→ ${esc(o.a)}</div>
         </li>`;}).join("")}</ul>
+      ${cubiertas.length ? `<div class="eyebrow" style="margin-top:16px">Ya cubierto por un sustituto</div>
+        <div class="chiprow">${cubiertas.map(o=>
+          `<span class="chip" title="${esc(o.mg||"")}">${esc(D.servicios[o.s].n)} → ${esc(o.cp||"")}</span>`
+        ).join("")}</div>` : ""}
     </div>`;
 }
 
@@ -678,6 +777,7 @@ function pintarOps(){
   const fp = $("#f-prio").value, ft = $("#f-tipo").value, ff = $("#f-fam2").value;
   const filas = D.ops.filter(o=>{
     const c = D.cuentas[o.c], s = D.servicios[o.s];
+    if(soloNetas && !o.neta) return false;
     if(fp && o.p!==fp) return false;
     if(ft && o.t!==ft) return false;
     if(ff && s.fam!==ff) return false;
@@ -686,24 +786,51 @@ function pintarOps(){
     return true;
   }).sort((a,b)=>b.sc-a.sc);
 
-  $("#op-count").textContent = `${filas.length} oportunidades · mostrando ${Math.min(120,filas.length)}`;
+  $("#op-count").textContent = `${filas.length.toLocaleString("es-CL")} filas · mostrando ${Math.min(120,filas.length)}`;
   const head = `<thead><tr><th>Prio</th><th>Score</th><th>Cuenta</th><th>Servicio</th>
-    <th>Familia</th><th>Tipo</th><th class="n">Ticket ref.</th><th>Por qué</th><th>Acción</th></tr></thead>`;
+    <th>Scope</th><th>Tipo</th><th>Rol en su grupo</th><th class="n">Valor ref.</th>
+    <th>Por qué</th><th>Acción</th></tr></thead>`;
   const body = filas.slice(0,120).map(o=>{
     const c = D.cuentas[o.c], s = D.servicios[o.s];
-    return `<tr>
-      <td><span class="pill ${o.p}">${o.p}</span></td>
+    return `<tr${o.neta?"":' class="off"'}>
+      <td><span class="pill ${o.p==="-"?"X":o.p}">${o.p}</span></td>
       <td style="min-width:96px"><span class="bar"><i style="width:${Math.min(100,o.sc)}%"></i><b>${o.sc.toFixed(1)}</b></span></td>
       <td><b>${esc(c.n)}</b><br><span class="count">${esc(c.ind)}</span></td>
-      <td>${esc(s.n)}</td>
+      <td>${esc(s.n)}<br><span class="count">${esc(s.gr.startsWith("solo:")?"sin sustitutos":s.gr+" · "+s.rg.toLowerCase())}</span></td>
       <td class="muted">${esc(s.fam)}</td>
       <td class="muted">${esc(o.t)}</td>
+      <td class="muted" style="min-width:150px"><span class="rol r-${o.rol}">${esc(ROL[o.rol])}</span>${
+        o.cp ? `<br><span class="count">${esc(o.cp)}</span>` : ""}</td>
       <td class="n">${eur(o.v)}</td>
-      <td class="muted" style="min-width:270px">${esc(o.m)}</td>
-      <td class="muted" style="min-width:170px">${esc(o.a)}</td>
+      <td class="muted" style="min-width:250px">${esc(o.m)}${o.mg?`<br><span class="count">${esc(o.mg)}</span>`:""}</td>
+      <td class="muted" style="min-width:160px">${esc(o.a)}</td>
     </tr>`;}).join("");
   $("#op-tbl").innerHTML = head + "<tbody>" + body + "</tbody>";
 }
+
+/* ---------- sustitucion ---------- */
+(function pintarSustitucion(){
+  const ev = M.n_oportunidades_brutas - M.n_oportunidades_netas;
+  $("#sust-stats").innerHTML = [
+    ["Oportunidades netas", M.n_oportunidades_netas, "jugadas distintas que sí vale abrir", true],
+    ["Duplicados evitados", ev, `${(ev/M.n_oportunidades_brutas*100).toFixed(0)}% del universo bruto`],
+    ["Alternativas", M.n_alternativas, "misma necesidad ya cubierta por otra variante"],
+    ["Ya cubierto", M.n_cubiertas, "resuelto por un servicio hermano que la cuenta implementa"],
+    ["Upgrades", M.n_upgrades, "siguiente escalón sobre algo ya implementado"],
+    ["Grupos activos", D.grupos.length, "familias de servicios que compiten entre sí"],
+  ].map(([k,v,s,hero])=>`<div class="stat${hero?" hero":""}"><span class="k">${k}</span>`
+    + `<span class="v num">${typeof v==="number"?v.toLocaleString("es-CL"):v}</span><span class="s">${s}</span></div>`).join("");
+
+  const head = `<thead><tr><th>Grupo</th><th>Regla</th><th class="n">Celdas</th><th class="n">Netas</th>
+    <th class="n">Evitadas</th><th>Reducción</th><th>Por qué son sustitutos</th></tr></thead>`;
+  $("#gr-tbl").innerHTML = head + "<tbody>" + D.grupos.map(g=>`<tr>
+      <td><b>${esc(g.g)}</b></td>
+      <td><span class="rol r-${g.regla}">${esc(g.regla.toLowerCase())}</span></td>
+      <td class="n">${g.celdas}</td><td class="n">${g.netas}</td><td class="n">${g.evitadas}</td>
+      <td style="min-width:110px"><span class="bar"><i style="width:${g.red}%"></i><b>${g.red.toFixed(0)}%</b></span></td>
+      <td class="muted" style="min-width:340px">${esc(g.desc)}</td>
+    </tr>`).join("") + "</tbody>";
+})();
 
 /* ---------- catalogo ---------- */
 (function pintarCatalogo(){
@@ -714,7 +841,8 @@ function pintarOps(){
       if(x[2]===1) c.e++; else if(x[2]===2||x[2]===3) c.c++; else if(x[2]===4) c.p++; else c.b++;
     });
     return {s,c,i};
-  }).sort((a,b)=> (b.c.e+b.c.c+b.c.p) - (a.c.e+a.c.c+a.c.p) || b.s.tic-a.s.tic);
+  }).sort((a,b)=> (b.c.e+b.c.c+b.c.p) - (a.c.e+a.c.c+a.c.p) || b.s.tic-a.s.tic)
+    .slice(0, 40);
 
   $("#cat").innerHTML = conteo.map(({s,c})=>`
     <div class="cat-row">
@@ -744,20 +872,26 @@ function pintarOps(){
 $("#method").innerHTML = [
   ["0.26","Afinidad","Market basket sobre las canastas de cada cuenta más el porcentaje de cuentas de la misma industria que ya ejecutan el servicio."],
   ["0.24","Demanda","Penetración del servicio en el portafolio Chile combinada con su win rate histórico."],
-  ["0.20","Adyacencia","Cercanía al portafolio actual: 1.00 misma subfamilia, 0.75 misma familia, 0.50 mismo pilar, 0.10 cuenta sin nada ejecutado."],
-  ["0.18","Valor","Ticket mediano histórico del servicio, normalizado en escala logarítmica."],
+  ["0.20","Adyacencia","Cercanía al portafolio actual, por la jerarquía del catálogo: 1.00 misma categoría de negocio, 0.60 mismo scope, 0.45 misma capability, 0.35 mismo pilar, 0.10 cuenta sin nada ejecutado."],
+  ["0.18","Valor","Valor anual de referencia en escala logarítmica: manda el histórico chileno, y si no existe, el SRP de lista del catálogo."],
   ["0.12","Momentum","Pitches recientes del servicio y decaimiento exponencial desde su último movimiento."],
   ["×","Factores","Estado de la celda: 1.00 nunca ofrecido, 0.70 perdido, 0.55 en pausa. Una derrota de menos de 270 días castiga a 0.35."],
+  ["÷","Sustitución","Después del score, cada cuenta se queda con una jugada por grupo: el resto pasa a alternativa o queda cubierto y sale del ranking."],
 ].map(([w,t,p])=>`<div><div class="w num">${w}</div><h3>${t}</h3><p>${p}</p></div>`).join("");
 
 /* ---------- eventos ---------- */
 $("#f-ind").addEventListener("change", pintarMatriz);
 $("#f-fam").addEventListener("change", pintarMatriz);
-document.querySelectorAll(".seg button").forEach(b=>b.addEventListener("click", ()=>{
-  orden = b.dataset.sort;
-  document.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-pressed", String(x===b)));
-  pintarMatriz();
-}));
+function segmento(selector, alHacerClic){
+  const botones = document.querySelectorAll(selector);
+  botones.forEach(b=>b.addEventListener("click", ()=>{
+    botones.forEach(x=>x.setAttribute("aria-pressed", String(x===b)));
+    alHacerClic(b);
+  }));
+}
+segmento("[data-sort]", b=>{ orden = b.dataset.sort; pintarMatriz(); });
+segmento("[data-scope]", b=>{ scope = b.dataset.scope; pintarMatriz(); });
+segmento("[data-net]", b=>{ soloNetas = b.dataset.net === "1"; pintarOps(); });
 $("#matrix").addEventListener("click", ev=>{
   const t = ev.target.closest("[data-c]");
   if(!t) return;

@@ -11,7 +11,7 @@ from typing import Any
 
 import pandas as pd
 
-from . import affinity, coverage, ingest, scoring
+from . import affinity, coverage, ingest, scoring, substitution
 from .config import Config, cargar
 
 
@@ -20,6 +20,7 @@ class Mapa:
     cfg: Config
     corte: pd.Timestamp
     base: pd.DataFrame
+    universo: pd.DataFrame
     celdas: pd.DataFrame
     matriz_estado: pd.DataFrame
     matriz_familia: pd.DataFrame
@@ -29,7 +30,9 @@ class Mapa:
     reglas: dict[str, pd.DataFrame]
     adopcion_industria: pd.DataFrame
     oportunidades: pd.DataFrame
+    oportunidades_netas: pd.DataFrame
     top_oportunidades: pd.DataFrame
+    grupos: pd.DataFrame
     pipeline_abierto: pd.DataFrame
     resumen: dict[str, Any] = field(default_factory=dict)
 
@@ -40,7 +43,11 @@ def construir(cfg: Config | None = None) -> Mapa:
     corte = ingest.fecha_corte(cfg, base)
 
     meses = cfg.params["ventanas"]["meses_momentum"]
-    celdas = coverage.celdas(cfg, base)
+
+    # El universo del mapa lo define el catalogo oficial, no lo ya pitcheado.
+    universo = cfg.universo(set(base["service_name"]))
+    universo = universo.merge(coverage.valor_referencia(base, universo), on="service_name", how="left")
+    celdas = coverage.celdas(cfg, base, universo)
     perfil_cta = coverage.perfil_cuentas(cfg, base, celdas, corte)
     perfil_srv = coverage.perfil_servicios(base, celdas, corte, meses)
 
@@ -51,7 +58,9 @@ def construir(cfg: Config | None = None) -> Mapa:
     adopcion = affinity.adopcion_por_industria(celdas)
 
     oportunidades = scoring.puntuar(cfg, celdas, afin, perfil_srv, corte)
+    netas = oportunidades[oportunidades["oportunidad_neta"]].reset_index(drop=True)
     top = scoring.top_por_cuenta(oportunidades, cfg.scoring["top_por_cuenta"])
+    grupos = substitution.resumen_grupos(oportunidades)
 
     pipeline_abierto = (
         base[base["es_abierto"]]
@@ -72,6 +81,11 @@ def construir(cfg: Config | None = None) -> Mapa:
         "n_en_pausa": int((celdas["cobertura"] == "EN_PAUSA").sum()),
         "n_perdido": int((celdas["cobertura"] == "PERDIDO").sum()),
         "n_blanco": int((celdas["cobertura"] == "BLANCO").sum()),
+        "n_oportunidades_brutas": len(oportunidades),
+        "n_oportunidades_netas": int(oportunidades["oportunidad_neta"].sum()),
+        "n_alternativas": int((oportunidades["rol_en_grupo"] == "ALTERNATIVA").sum()),
+        "n_cubiertas": int((oportunidades["rol_en_grupo"] == "CUBIERTO").sum()),
+        "n_upgrades": int((oportunidades["rol_en_grupo"] == "UPGRADE").sum()),
         "cobertura_pct": round((celdas["cobertura"] == "EJECUTADO").mean() * 100, 1),
         "revenue_ganado_eur": float(base.loc[base["categoria"] == "GANADO", "precio_eur"].sum()),
         "pipeline_abierto_eur": float(base.loc[base["categoria"] == "ABIERTO", "precio_eur"].sum()),
@@ -92,6 +106,7 @@ def construir(cfg: Config | None = None) -> Mapa:
         cfg=cfg,
         corte=corte,
         base=base,
+        universo=universo,
         celdas=celdas,
         matriz_estado=coverage.matriz(celdas, "simbolo"),
         matriz_familia=coverage.matriz_familia(celdas),
@@ -101,7 +116,9 @@ def construir(cfg: Config | None = None) -> Mapa:
         reglas=reglas,
         adopcion_industria=adopcion,
         oportunidades=oportunidades,
+        oportunidades_netas=netas,
         top_oportunidades=top,
+        grupos=grupos,
         pipeline_abierto=pipeline_abierto,
         resumen=resumen,
     )

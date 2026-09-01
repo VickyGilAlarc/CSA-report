@@ -1,0 +1,119 @@
+service_name,label_corto,grupo_sustitucion,nivel,modalidad
+MIM Bayesiano,MIM Bayesiano,Atribucion Digital,1,Proyecto
+TV Impact per run,TV Impact per run,TV Impact,1,Proyecto
+TV Impact per update,TV Impact per update,TV Impact,1,Proyecto
+TV Impact Annual contract - Example with 1 Report per month,TV Impact Anual,TV Impact,2,Anual
+Investment Curves (by conversion:channel),Investment Curves,Investment Curves,1,Proyecto
+Curves Update (by conversion:channel),Curves Update,Investment Curves,1,Proyecto
+Curves Base contract: 4 channels/2 updates,Curves Base,Investment Curves,2,Contrato
+RBA,RBA,RBA,1,Proyecto
+RBA Update,RBA Update,RBA,1,Proyecto
+RBA Base contract: model + 3 updates,RBA Base,RBA,2,Contrato
+MMM Marketing Mix Modeling (without data collection process),MMM Full,MMM,1,Proyecto
+Brand Equity Model,Brand Equity Model,,1,Proyecto
+Nested (MMM + BEM) without Data Collection,Nested MMM+BEM,MMM,2,Proyecto
+Geolift,Geolift,Geo Incrementalidad,1,Proyecto
+MMM Lite,MMM Lite,MMM,1,Proyecto
+C- Perform set up + 4 month access,C-Perform setup,C- Perform,1,Contrato
+C- Perform - monthly access,C-Perform mensual,C- Perform,2,Mensual
+C- Nested,C- Nested,,1,Proyecto
+1PD Integration (until 15 sources) - Google,1PD Integration,,1,Proyecto
+Online Data Optimization - Basic,ODO Basic,ODO,1,Proyecto
+Online Data Optimization - sites without E-commerce,ODO sin E-commerce,ODO,1,Proyecto
+Online Data Optimization - sites with E-commerce,ODO E-commerce,ODO,1,Proyecto
+MC Content API,MC Content API,,1,Proyecto
+"CAPI via Partner Integrations (Vtex, Magento, etc.)",CAPI via Partner,CAPI Implementacion,1,Proyecto
+CAPI x Gateway by CSA - look for special ratecard,CAPI x Gateway,CAPI Implementacion,1,Proyecto
+CAPI Automated Offline Integration with CRM,CAPI Offline CRM,,1,Proyecto
+CAPI via CSA Gateway – 1PD Delivery,CAPI 1PD Delivery,,1,Proyecto
+CAPI for Business Messaging (WhatsApp),CAPI WhatsApp,,1,Proyecto
+Conversion LIFT by META,Conversion Lift META,Geo Incrementalidad,1,Proyecto
+CAPI via Other Partner Integrations (GTM/Tealium),CAPI via GTM/Tealium,CAPI Implementacion,1,Proyecto
+CAPI via Direct Code Integration,CAPI codigo directo,CAPI Implementacion,1,Proyecto
+APIs Public,APIs Public,,1,Proyecto
+APIs Private,APIs Private,,1,Proyecto
+Google Analytics 4 (5x sessions),Training GA4,,1,Proyecto
+Full Value of Web And App,Full Value Web & App,,1,Proyecto
+LookerStudio (5x 1‑hour sessions each),Training LookerStudio,,1,Proyecto
+GCP + BQ (5x 1‑hour sessions each),Training GCP+BQ,,1,Proyecto
+Custom Bidding,Custom Bidding,,1,Proyecto
+Audience Strategy,Audience Strategy,,1,Proyecto
+OO: Google Ads Manual,OO Google Ads Manual,,1,Proyecto
+OO: Conv Offline CRM,OO Conv Offline CRM,Conversiones Offline Google,1,Proyecto
+OO: Conv Offline BBDD,OO Conv Offline BBDD,Conversiones Offline Google,1,Proyecto
+Shopping Insider Clasic,Shopping Insider Clasic,Shopping Feed,1,Proyecto
+Shopping Insider / Feed AI,Shopping Insider,Shopping Feed,2,Proyecto
+Conversión Optimizer UX-UI,CRO UX-UI,,1,Proyecto
+Retail Discovery AI,Retail Discovery AI,,1,Proyecto
+Co-Op 4 All,Co-Op 4 All,,1,Proyecto
+DCO Basic,DCO Basic,DCO,1,Proyecto
+DCO Intermediate,DCO Intermediate,DCO,2,Proyecto
+DCO Advanced,DCO Advanced,DCO,3,Proyecto
+Topic mind + DCO,Topic mind + DCO,Topic Mine,1,Proyecto
+Topic Mine,Topic Mine,Topic Mine,1,Proyecto
+AMA Predictive Modeling per model,AMA Predictive Modeling,,1,Proyecto
+Data Driven Atribution (GA4 - CM - SADS),Data Driven Attribution,Atribucion Digital,1,Proyecto
+Data Clean Rooms (AdsDataHub),Data Clean Rooms,,1,Proyecto
+TIK TOK Server Side,TIK TOK Server Side,,1,Proyecto
+Google Consent Mode (must include a CPM),Google Consent Mode,,1,Proyecto
+VIGenAIr,VIGenAIr,,1,Proyecto
+Performance Powered Conversions (ECL),Perf. Powered Conv.,,1,Proyecto
+Value Centric Measurement,Value Centric Measurement,,1,Proyecto
+Whatsapp Conversions Import,Whatsapp Conversions Impo.,,1,Proyecto
+Appcellence,Appcellence,,1,Proyecto
+ABCD Detector (Google implementation),ABCD Detector (Google),ABCD Detector,2,Proyecto
+Advanced Predictive Leads Value,Predictive Leads Value,,1,Proyecto
+Crystal Value,Crystal Value,,1,Proyecto
+Future Customer Values,Future Customer Values,,1,Proyecto
+META Campaign upload automation,META Campaign upload auto.,,1,Proyecto
+C-GenIA,C-GenIA,C-GenIA,2,Proyecto
+Path to brand equity,Path to brand equity,,1,Proyecto
+Propensity models,Propensity models,,1,Proyecto
+CLTV Prediction,CLTV Prediction,,1,Proyecto
+Next best offer,Next best offer,,1,Proyecto
+Agent Based Model,Agent Based Model,,1,Proyecto
+Forecasting Models,Forecasting Models,,1,Proyecto
+MMM Benchmarks tool,MMM Benchmarks tool,MMM,1,Proyecto
+Tech Services Ad Hoc,Tech Services Ad Hoc,,1,Recurrente
+Science Ad Hoc,Science Ad Hoc,,1,Recurrente
+META Bulk Upload of Catalogs,META Catalogo bulk,META Catalogos,1,Proyecto
+META Catalog Integration via API,META Catalogo API,META Catalogos,1,Proyecto
+META Catalog Integration with Native Platforms,META Catalogo nativo,META Catalogos,1,Proyecto
+META CAPI GATEWAY: Implementation in the Client's Own Environment,META CAPI GW,META CAPI Gateway,1,Proyecto
+META CAPI GATEWAY: Implementation in the Client's Own Environment + Signals,META CAPI GW + Signals,META CAPI Gateway,2,Proyecto
+Consulting Ad Hoc,Consulting Ad Hoc,,1,Recurrente
+Cloud Ad Hoc,Cloud Ad Hoc,,1,Recurrente
+CRM Ad Hoc,CRM Ad Hoc,,1,Recurrente
+CX Ad Hoc,CX Ad Hoc,,1,Recurrente
+Product Recommendation Engine,Product Reco Engine,,1,Proyecto
+LTV Prediction​​,LTV Prediction,,1,Proyecto
+Churn Prediction​​,Churn Prediction,,1,Proyecto
+Purchase Prediction​​,Purchase Prediction,,1,Proyecto
+Advanced Segmentation Cluster,Segmentacion avanzada,,1,Proyecto
+Advanced Segmentation Cluster ​with CRMint ​,Segmentacion + CRMint,,1,Proyecto
+BI Services,BI Services,,1,Proyecto
+Research Ad Hoc,Research Ad Hoc,,1,Recurrente
+ABCD Detector - Basic (20 Videos) per month,ABCD Basic Mensual,ABCD Detector,1,Mensual
+ABCD Detector - Basic (20 Videos) Annual Subscription,ABCD Basic Anual,ABCD Detector,1,Anual
+ABCD Detector - Pro (100 Videos) per month,ABCD Pro Mensual,ABCD Detector,2,Mensual
+ABCD Detector - Pro (100 Videos) Annual Subscription,ABCD Pro Anual,ABCD Detector,2,Anual
+ABCD Detector - Enterprise (500 Videos) per month,ABCD Enterprise Mensual,ABCD Detector,3,Mensual
+ABCD Detector - Enterprise (500 Videos) Annual Subscription,ABCD Enterprise Anual,ABCD Detector,3,Anual
+C-GenIA - Basic (200 images) per month,C-GenIA Basic Mensual,C-GenIA,1,Mensual
+C-GenIA - Basic (200 images) Annual Subscription,C-GenIA Basic Anual,C-GenIA,1,Anual
+C-GenIA - Intermediate (500 images) per month,C-GenIA Intermediate Mens.,C-GenIA,2,Mensual
+C-GenIA - Intermediate (500 images) Annual Subscription,C-GenIA Intermediate Anual,C-GenIA,2,Anual
+C-GenIA - Advanced (1000 images) per month,C-GenIA Advanced Mensual,C-GenIA,3,Mensual
+C-GenIA - Advanced (1000 images) Annual Subscription,C-GenIA Advanced Anual,C-GenIA,3,Anual
+Meridian Google Founds,Meridian,MMM,2,Proyecto
+Creative Tech Ad Hoc,Creative Tech Ad Hoc,,1,Recurrente
+SEO,SEO,,1,Proyecto
+Business Inteligence,Business Inteligence,,1,Proyecto
+Converged Report,Converged Report,,1,Proyecto
+People data fee Media,People data fee Media,,1,Recurrente
+Audiencias,Audiencias,,1,Proyecto
+Licencias GA4 360,Licencias GA4 360,,1,Licencia
+Licencias SA/DV360,Licencias SA/DV360,,1,Licencia
+FTE Cliente directo,FTE Cliente directo,,1,Recurrente
+Chat2Flow,Chat2Flow,,1,Proyecto
+Talent2Flow,Talent2Flow,,1,Proyecto

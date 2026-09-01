@@ -24,6 +24,14 @@ PRIORIDAD = {
     "C": {"bg_color": "#EEF1F4", "font_color": "#5A6472"},
 }
 
+ROLES = {
+    "UNICO": {"bg_color": "#EEF1F4", "font_color": "#2A3038"},
+    "REPRESENTANTE": {"bg_color": "#DCEBFB", "font_color": "#16324A", "bold": True},
+    "UPGRADE": {"bg_color": "#D6F0E4", "font_color": "#0E4A34", "bold": True},
+    "ALTERNATIVA": {"bg_color": "#FBEFD6", "font_color": "#5A4410"},
+    "CUBIERTO": {"bg_color": "#E9ECEF", "font_color": "#8A929B", "italic": True},
+}
+
 LEEME = [
     ("Que es este archivo",
      "Mapa de proyectos ejecutados y prospectados por cuenta para CSA Chile, construido "
@@ -33,6 +41,28 @@ LEEME = [
     ("Unidad de analisis",
      "La celda = cruce cuenta x servicio del catalogo. Con N cuentas y M servicios el mapa "
      "tiene N x M celdas, esten o no en el CRM. Las celdas sin ningun pitch son el espacio blanco."),
+    ("De donde sale el catalogo",
+     "Del export oficial de ZOHO (data/raw/ZOHO_Catalogo_CSA_Latam.xlsx), con su jerarquia "
+     "Pillar > Scope Of Service > Business Category y sus precios de lista en EUR. Entran al mapa "
+     "los servicios activos, mas cualquiera dado de baja que igual tenga historial de pitch."),
+    ("Oportunidad neta: el filtro de esfuerzo duplicado",
+     "No todo espacio blanco es una oportunidad. Tres variantes de Online Data Optimization no son "
+     "tres proyectos: con una basta. Cada servicio pertenece a un GRUPO DE SUSTITUCION con una regla, "
+     "y dentro de cada cuenta el modelo asigna un rol: UNICO (sin sustitutos), REPRESENTANTE (la "
+     "variante elegida del grupo), UPGRADE (el siguiente escalon sobre algo ya implementado), "
+     "ALTERNATIVA (otra variante del mismo caso, se guarda pero no se cuenta) y CUBIERTO (ya resuelto "
+     "por un servicio hermano). Solo UNICO, REPRESENTANTE y UPGRADE son oportunidad neta."),
+    ("Las tres reglas de grupo",
+     "EXCLUSIVO: los miembros son caminos alternativos al mismo resultado (las 3 ODO, las 4 rutas de "
+     "CAPI, los enfoques de MMM). Si la cuenta ya tiene uno, el resto queda cubierto; si no tiene "
+     "ninguno, se propone solo el de mejor score. | ESCALABLE: los miembros son escalones ordenados "
+     "(C-GenIA Basic/Intermediate/Advanced). Lo que esta al nivel de la cuenta o por debajo queda "
+     "cubierto y el siguiente escalon es un upgrade, valorizado por la diferencia de precio. | "
+     "ACUMULABLE: los miembros suman de verdad (modelos predictivos, ad hoc de distintas "
+     "disciplinas): cada uno es su propia oportunidad."),
+    ("Una propuesta viva bloquea a sus hermanos",
+     "Si hay un pitch abierto en un grupo EXCLUSIVO o ESCALABLE, las demas variantes quedan cubiertas: "
+     "no se pitchean dos versiones del mismo servicio en paralelo a la misma cuenta."),
     ("Estados de cobertura",
      "EJEC = ejecutado (algun pitch ganado) | PITCH = en pipeline activo (pitching, prospecting, lead) | "
      "PAUSA = on hold | PERD = se ofrecio y se perdio | vacio = NUNCA OFRECIDO (espacio blanco). "
@@ -40,7 +70,8 @@ LEEME = [
     ("Como se prioriza una oportunidad",
      "Score 0-100 = 100 x (demanda x 0.24 + afinidad x 0.26 + valor x 0.18 + momentum x 0.12 + "
      "adyacencia x 0.20), multiplicado por un factor segun el estado actual de la celda y por una "
-     "penalizacion si la derrota es reciente. Los pesos se editan en config/parametros.yaml."),
+     "penalizacion si la derrota es reciente. Despues del score se aplican las reglas de sustitucion, "
+     "que dejan una sola jugada por grupo. Los pesos se editan en config/parametros.yaml."),
     ("Demanda",
      "Que tan vendible es el servicio en el portafolio Chile: mezcla la penetracion "
      "(% de cuentas que ya lo ejecutan) con su win rate historico."),
@@ -49,20 +80,29 @@ LEEME = [
      "sobre las canastas de cada cuenta) y adopcion de pares (% de cuentas de la MISMA industria que "
      "ya ejecutan el servicio). Responde a 'tus comparables ya lo compran y esta cuenta no'."),
     ("Valor",
-     "Ticket mediano historico del servicio, normalizado en escala logaritmica."),
+     "Valor de referencia del servicio en escala logaritmica. Manda el ticket mediano historico en "
+     "Chile cuando existe; si no, el SRP de lista del catalogo; si el servicio es 'a cotizar' y no "
+     "tiene historia, la mediana del portafolio. La columna fuente_valor dice cual se uso. Los SRP "
+     "mensuales se anualizan x12 para poder compararlos contra contratos anuales; los valores "
+     "historicos NO se anualizan porque ya son el monto cerrado del negocio."),
     ("Momentum",
      "Que tan vivo esta el servicio en el mercado: mezcla el % de pitches recientes con un "
      "decaimiento exponencial sobre los dias desde el ultimo movimiento."),
     ("Adyacencia",
-     "Cercania al portafolio actual de la cuenta: 1.00 misma subfamilia, 0.75 misma familia, "
-     "0.50 mismo pilar, 0.25 cliente activo pero cruzando de pilar, 0.10 cuenta sin nada ejecutado."),
+     "Cercania al portafolio actual de la cuenta, recorriendo la jerarquia del catalogo de lo fino a "
+     "lo grueso: 1.00 misma Business Category, 0.60 mismo Scope Of Service, 0.45 misma Capability, "
+     "0.35 mismo pilar, 0.20 cliente activo pero cruzando de pilar, 0.10 cuenta sin nada ejecutado. "
+     "Los pesos bajan rapido a proposito: 'Tech Consulting' agrupa mas de la mitad del catalogo, "
+     "asi que compartir scope dice mucho menos que compartir categoria."),
     ("Prioridad",
-     "A = score >= 48 (jugada del trimestre) | B = score >= 36 (construir el caso) | C = el resto. "
-     "Son umbrales absolutos para poder comparar la evolucion trimestre a trimestre."),
+     "A = score >= 48 (jugada del trimestre) | B = score >= 36 (construir el caso) | C = el resto | "
+     "'-' = no es oportunidad neta (alternativa o cubierta). Son umbrales absolutos para poder "
+     "comparar la evolucion trimestre a trimestre."),
     ("Como actualizarlo",
-     "Reemplazar data/raw/Reporte_Pitches_CL.xlsx por el export nuevo y correr 'python run.py'. "
-     "Si aparecen servicios o cuentas nuevas el pipeline se detiene y pide clasificarlos en "
-     "config/taxonomia_servicios.csv y config/cuentas.csv: eso mantiene el mapa limpio en el tiempo."),
+     "Reemplazar data/raw/Reporte_Pitches_CL.xlsx (o el catalogo ZOHO) por el export nuevo y correr "
+     "'python run.py'. Si aparecen servicios o cuentas nuevas el pipeline se detiene y pide "
+     "clasificarlos en config/servicios_reglas.csv y config/cuentas.csv: eso mantiene el mapa limpio "
+     "en el tiempo."),
     ("Moneda", "Todos los montos estan en EUR (columna PROJECT PRICE (Lcy) del export, ya convertida)."),
 ]
 
@@ -129,7 +169,15 @@ def generar(mapa: Mapa, destino: Path | str) -> Path:
                 ("Celdas en pipeline", r["n_en_curso"], "Pitching, prospecting o lead"),
                 ("Celdas en pausa", r["n_en_pausa"], "On hold: propuestas a destrabar"),
                 ("Celdas perdidas", r["n_perdido"], "Se ofrecio y no se gano"),
-                ("ESPACIOS BLANCOS", r["n_blanco"], "Nunca ofrecido a esa cuenta: el foco de este mapa"),
+                ("ESPACIOS BLANCOS", r["n_blanco"], "Nunca ofrecido a esa cuenta: el universo bruto"),
+                ("OPORTUNIDADES NETAS", r["n_oportunidades_netas"],
+                 "Lo anterior menos sustitutos y duplicados: el foco real de este mapa"),
+                ("Alternativas descartadas", r["n_alternativas"],
+                 "Variantes equivalentes de una oportunidad ya contada (hoja 23)"),
+                ("Celdas cubiertas", r["n_cubiertas"],
+                 "Ya resueltas por un servicio hermano que la cuenta implementa"),
+                ("Upgrades detectados", r["n_upgrades"],
+                 "Siguiente escalon sobre algo ya implementado"),
                 ("Cobertura del catalogo", f"{r['cobertura_pct']}%", "Celdas ejecutadas sobre el total del mapa"),
                 ("Win rate global", f"{r['win_rate_global']:.1%}", "Ganados / (ganados + perdidos)"),
                 ("Revenue ganado (EUR)", round(r["revenue_ganado_eur"]), "Suma de pitches ganados"),
@@ -173,19 +221,26 @@ def generar(mapa: Mapa, destino: Path | str) -> Path:
         # ---------------- 20-22 Oportunidades ----------------
         cols_op = [
             "cuenta_normalizada", "industria", "tier_cuenta", "servicio_normalizado", "familia",
-            "pilar", "tipo_oportunidad", "prioridad", "score", "ranking_en_cuenta",
-            "valor_potencial_eur", "modelo_comercial", "ticket_tipo",
+            "subfamilia", "pilar", "tipo_oportunidad", "oportunidad_neta", "rol_en_grupo",
+            "grupo_sustitucion", "regla_grupo", "cubierto_por", "motivo_grupo",
+            "prioridad", "score", "ranking_en_cuenta",
+            "valor_potencial_eur", "modalidad_valor", "fuente_valor", "modalidad", "ticket_tipo",
             "c_demanda", "c_afinidad", "c_valor", "c_momentum", "c_adyacencia",
             "adopcion_industria_pct", "cuentas_industria_ejecutan", "cuentas_industria",
             "basket_lift_ejecutado", "penetracion_pct", "win_rate", "momentum_pct",
             "n_pitches", "dias_desde_derrota", "reactivable", "motivo", "accion_sugerida",
         ]
+        netas = mapa.oportunidades_netas
         hojas_op = {
-            "20_Oportunidades": mapa.oportunidades[cols_op],
+            "20_Oportunidades_Netas": netas[cols_op],
             "21_Top_por_Cuenta": mapa.top_oportunidades[cols_op],
-            "22_Reactivacion": mapa.oportunidades.loc[
-                mapa.oportunidades["tipo_oportunidad"].isin(["Reactivacion", "Rescate (en pausa)"]), cols_op
+            "22_Reactivacion": netas.loc[
+                netas["tipo_oportunidad"].isin(["Reactivacion", "Rescate (en pausa)", "Upgrade"]), cols_op
             ],
+            "23_Alternativas_Descartadas": mapa.oportunidades.loc[
+                ~mapa.oportunidades["oportunidad_neta"], cols_op
+            ].sort_values(["cuenta_normalizada", "grupo_sustitucion", "score"],
+                          ascending=[True, True, False]),
         }
         for hoja, df in hojas_op.items():
             _escribir(writer, df.reset_index(drop=True), hoja, congelar=(1, 1))
@@ -200,10 +255,28 @@ def generar(mapa: Mapa, destino: Path | str) -> Path:
             ws.conditional_format(1, col_s, len(df), col_s, {
                 "type": "data_bar", "bar_color": "#16324A", "bar_solid": True,
             })
+            col_r = cols_op.index("rol_en_grupo")
+            for rol, estilo in ROLES.items():
+                ws.conditional_format(1, col_r, len(df), col_r, {
+                    "type": "cell", "criteria": "equal to", "value": f'"{rol}"',
+                    "format": wb.add_format(estilo),
+                })
 
         # ---------------- 30-31 Perfiles ----------------
         _escribir(writer, mapa.perfil_cuentas, "30_Perfil_Cuentas", congelar=(1, 2))
         _escribir(writer, mapa.perfil_servicios, "31_Perfil_Servicios", congelar=(1, 1))
+
+        # ---------------- 24 Grupos de sustitucion ----------------
+        grupos = mapa.grupos.rename(columns={
+            "celdas": "celdas_del_grupo", "netas": "oportunidades_netas",
+            "celdas_evitadas": "duplicados_evitados",
+        })
+        _escribir(writer, grupos, "24_Grupos_Sustitucion", ancho_max=90, congelar=(1, 1))
+        ws = writer.sheets["24_Grupos_Sustitucion"]
+        if len(grupos):
+            col = list(grupos.columns).index("reduccion_pct")
+            ws.conditional_format(1, col, len(grupos), col, {
+                "type": "data_bar", "bar_color": "#C6493F", "bar_solid": True})
 
         # ---------------- 40-41 Mineria ----------------
         reglas = pd.concat(mapa.reglas.values(), ignore_index=True)
@@ -218,7 +291,9 @@ def generar(mapa: Mapa, destino: Path | str) -> Path:
         cols_celdas = [
             "cuenta_normalizada", "company", "industria", "grupo_economico", "tier_cuenta",
             "servicio_normalizado", "label_corto", "service_name", "familia", "subfamilia", "pilar",
-            "modelo_comercial", "ticket_tipo", "cobertura", "etiqueta_cobertura",
+            "capability", "origen", "grupo_sustitucion", "regla_grupo", "nivel", "modalidad",
+            "ticket_tipo", "valor_referencia_eur", "valor_anual_eur", "fuente_valor", "srp_eur",
+            "activo", "cobertura", "etiqueta_cobertura",
             "n_pitches", "n_ganados", "n_perdidos", "n_abiertos",
             "revenue_ganado_eur", "pipeline_abierto_eur", "valor_perdido_eur",
             "primer_contacto", "ultimo_movimiento", "ultima_derrota", "estados", "es_espacio_blanco",

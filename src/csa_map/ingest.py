@@ -14,6 +14,15 @@ import pandas as pd
 
 from .config import Config
 
+# Lo que el catalogo aporta a cada pitch. El catalogo es la fuente de verdad de
+# la jerarquia de servicios; el CRM solo aporta el nombre.
+COLUMNAS_CATALOGO = [
+    "service_name", "servicio_normalizado", "label_corto", "pilar", "familia", "subfamilia",
+    "capability", "origen", "modalidad", "ticket_tipo", "grupo_sustitucion", "regla_grupo",
+    "descripcion_regla", "nivel", "srp_eur", "costo_eur", "min_revenue_eur", "meses_estimados",
+    "activo", "es_singleton",
+]
+
 COLUMNAS_FUENTE = {
     "COMPANY": "company",
     "Nombre de Pitch": "nombre_pitch",
@@ -102,15 +111,16 @@ def normalizar(cfg: Config, df: pd.DataFrame | None = None) -> pd.DataFrame:
     base["orden_estado"] = base["fase_cruda"].map(lambda f: fases[f]["orden"])
     base["es_abierto"] = base["fase_cruda"].map(lambda f: fases[f]["abierto"])
 
-    # --- enriquecimiento con taxonomia y cuentas --------------------------
-    tax = cfg.taxonomia.drop(columns=[c for c in ("notas",) if c in cfg.taxonomia.columns])
-    sin_taxonomia = sorted(set(base["service_name"]) - set(tax["service_name"]))
-    if sin_taxonomia:
+    # --- enriquecimiento con el catalogo oficial y la ficha de cuentas -----
+    base["service_name"] = base["service_name"].str.replace(r"\s+", " ", regex=True)
+    cat = cfg.catalogo[COLUMNAS_CATALOGO]
+    sin_catalogo = sorted(set(base["service_name"]) - set(cat["service_name"]))
+    if sin_catalogo:
         raise ValueError(
-            "Servicios sin clasificar en config/taxonomia_servicios.csv: "
-            f"{sin_taxonomia}. Agregalos para que entren al mapa."
+            "Servicios pitcheados que no existen en el catalogo ZOHO: "
+            f"{sin_catalogo}. Revisa el nombre en el CRM o agregalos al catalogo."
         )
-    base = base.merge(tax, on="service_name", how="left")
+    base = base.merge(cat, on="service_name", how="left")
 
     cuentas = cfg.cuentas.drop(columns=[c for c in ("notas",) if c in cfg.cuentas.columns])
     sin_ficha = sorted(set(base["company"]) - set(cuentas["company"]))
@@ -132,7 +142,8 @@ def normalizar(cfg: Config, df: pd.DataFrame | None = None) -> pd.DataFrame:
     columnas = [
         "id_pitch", "company", "cuenta_normalizada", "industria", "grupo_economico", "tier_cuenta",
         "nombre_pitch", "service_name", "servicio_normalizado", "label_corto", "familia", "subfamilia",
-        "pilar", "pilar_crm", "discrepancia_pilar", "modelo_comercial", "ticket_tipo",
+        "capability", "origen", "pilar", "pilar_crm", "discrepancia_pilar", "modalidad", "ticket_tipo",
+        "grupo_sustitucion", "regla_grupo", "nivel", "srp_eur", "activo",
         "fase_cruda", "estado", "categoria", "orden_estado", "es_abierto",
         "fecha_brief", "fecha_resolucion", "fecha_referencia", "anio", "trimestre",
         "moneda_local", "precio_moneda_local", "tasa_cambio", "precio_eur", "costo_csa",

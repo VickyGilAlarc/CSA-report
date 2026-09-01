@@ -1,0 +1,18 @@
+grupo_sustitucion,regla_grupo,descripcion_regla,celdas,cuentas,netas,alternativas,cubiertas,upgrades,celdas_evitadas,reduccion_pct
+ABCD Detector,ESCALABLE,Escalones de volumen de video (Basic 20 / Pro 100 / Enterprise 500) y de facturacion. Mismo criterio que C-GenIA.,200,29,26,156,18,0,174,87.0
+C-GenIA,ESCALABLE,Escalones de volumen (Basic 200 / Intermediate 500 / Advanced 1000 imagenes) y de facturacion (mensual / anual). Se entra por un escalon y se sube; los escalones iguales o inferiores quedan cubiertos.,199,29,26,154,19,1,173,86.9
+CAPI Implementacion,EXCLUSIVO,"Rutas alternativas para implementar Conversions API (Gateway CSA, partner e-commerce, GTM/Tealium o codigo directo). Una cuenta implementa por una sola ruta.",114,29,27,81,6,0,87,76.3
+MMM,EXCLUSIVO,"MMM Lite, MMM completo, Nested (MMM+BEM) y Meridian son enfoques alternativos del mismo modelo de mix. Una cuenta corre un solo enfoque por ciclo.",112,29,25,75,12,0,87,77.7
+Investment Curves,ESCALABLE,La corrida puntual y el update son el escalon de entrada; el contrato base con 4 canales y 2 updates los contiene.,86,29,28,56,2,0,58,67.4
+RBA,ESCALABLE,La corrida y el update son el escalon de entrada; el contrato base modelo + 3 updates los contiene.,87,29,29,58,0,0,58,66.7
+ODO,EXCLUSIVO,"Basta una variante de Online Data Optimization por cuenta: se elige segun el tipo de sitio (con e-commerce, sin e-commerce o basic). Implementar dos es trabajo duplicado sobre la misma medicion.",82,29,24,48,10,0,58,70.7
+META Catalogos,EXCLUSIVO,"Bulk upload, API o plataforma nativa son tres formas de resolver el mismo catalogo. Se elige una.",87,29,29,58,0,0,58,66.7
+DCO,ESCALABLE,"Dynamic Conversion Optimization Basic / Intermediate / Advanced: es una escalera de sofisticacion, no tres productos.",87,29,29,58,0,0,58,66.7
+TV Impact,ESCALABLE,"Corrida y update puntuales frente al contrato anual, que los contiene.",87,29,29,58,0,0,58,66.7
+Geo Incrementalidad,EXCLUSIVO,Geolift (Google) y Conversion Lift (META) miden incrementalidad geografica: se corre en la plataforma donde esta la inversion.,58,29,29,29,0,0,29,50.0
+C- Perform,ESCALABLE,El set up con 4 meses de acceso es la entrada; el acceso mensual es la continuidad.,58,29,29,29,0,0,29,50.0
+Conversiones Offline Google,EXCLUSIVO,Subir conversiones offline desde CRM o desde BBDD es la misma integracion por dos fuentes.,58,29,29,29,0,0,29,50.0
+META CAPI Gateway,ESCALABLE,"La version con Signals contiene a la version base: si ya esta la base, lo unico vendible es el upgrade.",58,29,29,29,0,0,29,50.0
+Atribucion Digital,EXCLUSIVO,MIM Bayesiano y Data Driven Attribution resuelven la misma pregunta de atribucion por caminos distintos. RBA va aparte porque tiene su propia escalera de contratos.,29,29,29,0,0,0,0,0.0
+Shopping Feed,EXCLUSIVO,Shopping Insider Clasic quedo reemplazado por Shopping Insider / Feed AI.,29,29,29,0,0,0,0,0.0
+Topic Mine,EXCLUSIVO,Topic Mine y Topic Mind + DCO son el mismo motor con distinto empaque.,29,29,29,0,0,0,0,0.0

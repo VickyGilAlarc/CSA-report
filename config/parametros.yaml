@@ -5,10 +5,14 @@
 # =====================================================================
 
 fuente:
+  # Historial de pitches del CRM
   archivo: data/raw/Reporte_Pitches_CL.xlsx
   hoja: Sheet0
   fila_encabezado: 7          # 1-indexado, tal como se ve en Excel
   moneda_reporte: EUR         # PROJECT PRICE (Lcy) ya viene convertido
+  # Catalogo oficial de servicios (ZOHO): define el universo de columnas del mapa
+  catalogo: data/raw/ZOHO_Catalogo_CSA_Latam.xlsx
+  hoja_catalogo: Catalogo de servicios
 
 # Mapeo de la columna "Fase" del CRM a los estados del mapa.
 # categoria: GANADO | ABIERTO | PERDIDO
@@ -24,6 +28,21 @@ fases:
 # BLANCO es el espacio blanco puro: nunca se le ofrecio a esa cuenta.
 cobertura:
   jerarquia: [EJECUTADO, EN_CURSO, EN_PAUSA, PERDIDO, BLANCO]
+
+# --- Sustitucion entre servicios -------------------------------------------
+# Evita contar como oportunidades cosas que en la practica son el mismo trabajo.
+# Las reglas por grupo viven en config/grupos_sustitucion.csv y la pertenencia
+# de cada servicio en config/servicios_reglas.csv.
+sustitucion:
+  # Una propuesta viva en el grupo bloquea a sus hermanos: no se pitchean dos
+  # variantes del mismo servicio en paralelo.
+  pipeline_bloquea_grupo: true
+  # En un grupo ESCALABLE sin nada implementado se propone el escalon de entrada,
+  # no toda la escalera.
+  entrar_por_nivel_minimo: true
+  # En un grupo ESCALABLE con algo implementado se propone solo el siguiente
+  # escalon, no todos los superiores.
+  upgrade_solo_siguiente: true
 
 # Modelo de scoring de oportunidad (los pesos deben sumar 1.0)
 scoring:

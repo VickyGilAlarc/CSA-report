@@ -25,7 +25,11 @@ def main() -> int:
     print(f"Mapa: {r['n_celdas']} celdas -> {r['n_ejecutado']} ejecutadas, "
           f"{r['n_en_curso']} en pipeline, {r['n_en_pausa']} en pausa, "
           f"{r['n_perdido']} perdidas, {r['n_blanco']} espacios blancos")
-    print(f"Oportunidades: {r['oportunidades_A']} prioridad A / {r['oportunidades_B']} prioridad B")
+    evitadas = r["n_oportunidades_brutas"] - r["n_oportunidades_netas"]
+    print(f"Sustitucion: {r['n_oportunidades_netas']} oportunidades netas "
+          f"({evitadas} duplicados evitados: {r['n_alternativas']} alternativas, "
+          f"{r['n_cubiertas']} cubiertas) · {r['n_upgrades']} upgrades")
+    print(f"Prioridad: {r['oportunidades_A']} en A / {r['oportunidades_B']} en B")
 
     xlsx = excel_report.generar(mapa, SALIDA / "mapa_oportunidades_csa_cl.xlsx")
     print(f"  -> {xlsx.relative_to(Path(__file__).parent)}")
@@ -33,6 +37,9 @@ def main() -> int:
     csvs = {
         "celdas_cuenta_servicio.csv": mapa.celdas,
         "oportunidades.csv": mapa.oportunidades,
+        "oportunidades_netas.csv": mapa.oportunidades_netas,
+        "grupos_sustitucion.csv": mapa.grupos,
+        "catalogo_universo.csv": mapa.universo,
         "perfil_cuentas.csv": mapa.perfil_cuentas,
         "perfil_servicios.csv": mapa.perfil_servicios,
         "base_normalizada.csv": mapa.base,
