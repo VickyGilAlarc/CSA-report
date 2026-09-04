@@ -1,5 +1,5 @@
 grupo_sustitucion,regla_grupo,descripcion_regla
-ODO,EXCLUSIVO,"Basta una variante de Online Data Optimization por cuenta: se elige segun el tipo de sitio (con e-commerce, sin e-commerce o basic). Implementar dos es trabajo duplicado sobre la misma medicion."
+ODO,ESCALABLE,"Basta una variante de Online Data Optimization por cuenta: se elige segun el tipo de sitio (con e-commerce, sin e-commerce o basic). Implementar dos es trabajo duplicado sobre la misma medicion."
 C-GenIA,ESCALABLE,"Escalones de volumen (Basic 200 / Intermediate 500 / Advanced 1000 imagenes) y de facturacion (mensual / anual). Se entra por un escalon y se sube; los escalones iguales o inferiores quedan cubiertos."
 ABCD Detector,ESCALABLE,"Escalones de volumen de video (Basic 20 / Pro 100 / Enterprise 500) y de facturacion. Mismo criterio que C-GenIA."
 DCO,ESCALABLE,"Dynamic Conversion Optimization Basic / Intermediate / Advanced: es una escalera de sofisticacion, no tres productos."
